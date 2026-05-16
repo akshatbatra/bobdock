@@ -1,0 +1,215 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout
+	title="Bobdock Commit Test"
+	description="Check whether the Bobdock execution layer can commit a sample file to a GitHub repository."
+>
+	<main class="min-h-screen brand-shell">
+		<div class="mx-auto flex min-h-screen max-w-5xl flex-col px-5 py-6 lg:px-8">
+			<div class="navbar brand-nav px-3">
+				<div class="navbar-start">
+					<a href="/" class="btn btn-ghost gap-3 px-2 text-xl font-semibold tracking-normal">
+						<span class="brand-mark">BD</span>
+						Bobdock
+					</a>
+				</div>
+				<div class="navbar-end gap-2">
+					<a href="/app" class="btn btn-ghost btn-sm">App</a>
+					<div class="badge badge-warning badge-soft hidden sm:inline-flex">Commit test</div>
+				</div>
+			</div>
+
+			<section class="grid flex-1 items-center gap-10 py-16 lg:grid-cols-[0.9fr_1.1fr]">
+				<div class="max-w-2xl">
+					<div class="rail-label mb-5">GitHub write check</div>
+					<h1 class="text-4xl font-bold leading-tight tracking-normal md:text-6xl">
+						Check whether Bobdock can launch a repository write.
+					</h1>
+					<p class="mt-5 text-lg leading-8 text-base-content/70">
+						This test asks the execution layer to create or update a root-level
+						<span class="font-mono">BOBDOCK_COMMIT_TEST.md</span> file, commit it, and then
+						Bobdock verifies the file through GitHub.
+					</p>
+				</div>
+
+				<div class="card dock-panel">
+					<form id="commit-test-form" class="card-body gap-5 p-6 md:p-8">
+						<div>
+							<h2 class="card-title text-2xl">Commit access test</h2>
+							<p class="mt-2 text-sm leading-6 text-base-content/65">
+								Use a test repository or a repository where this sample file is acceptable.
+							</p>
+						</div>
+
+						<label class="form-control w-full">
+							<div class="label">
+								<span class="label-text font-medium">GitHub username</span>
+							</div>
+							<input
+								id="github-username"
+								class="input input-bordered w-full"
+								placeholder="octocat"
+								autocomplete="username"
+							/>
+						</label>
+
+						<label class="form-control w-full">
+							<div class="label">
+								<span class="label-text font-medium">GitHub repository URL</span>
+							</div>
+							<input
+								id="repo-url"
+								class="input input-bordered w-full"
+								placeholder="https://github.com/acme/product"
+								type="url"
+								required
+							/>
+						</label>
+
+						<div id="test-loading" class="alert hidden border-base-300 bg-base-200">
+							<span class="loading loading-spinner loading-sm text-warning"></span>
+							<span id="test-loading-message" class="text-sm">Starting commit access test.</span>
+						</div>
+
+						<div id="test-result" class="alert hidden">
+							<span id="test-result-message" class="text-sm"></span>
+						</div>
+
+						<div id="setup-required" class="alert alert-warning hidden">
+							<span class="text-sm">
+								Save your GitHub token in setup before running the commit test.
+								<a class="link font-medium" href="/app">Open setup</a>
+							</span>
+						</div>
+
+						<div class="card-actions mt-2">
+							<button id="test-button" class="btn btn-warning btn-block" type="submit">
+								Run commit test
+							</button>
+						</div>
+					</form>
+				</div>
+			</section>
+		</div>
+	</main>
+
+	<script>
+		const usernameInput = document.querySelector('#github-username');
+		const repoInput = document.querySelector('#repo-url');
+		const form = document.querySelector('#commit-test-form');
+		const loadingAlert = document.querySelector('#test-loading');
+		const loadingMessage = document.querySelector('#test-loading-message');
+		const resultAlert = document.querySelector('#test-result');
+		const resultMessage = document.querySelector('#test-result-message');
+		const setupRequiredAlert = document.querySelector('#setup-required');
+		const testButton = document.querySelector('#test-button');
+
+		const savedUsername = readValue('bobdock.github.username');
+		const savedToken = readValue('bobdock.github.token');
+		if (usernameInput instanceof HTMLInputElement && savedUsername) {
+			usernameInput.value = savedUsername;
+		}
+		setupRequiredAlert?.classList.toggle('hidden', Boolean(savedToken));
+
+		function readValue(key) {
+			try {
+				return window.localStorage.getItem(key) || '';
+			} catch {
+				return '';
+			}
+		}
+
+		function setLoading(isLoading, message = 'Starting commit access test.') {
+			loadingAlert?.classList.toggle('hidden', !isLoading);
+			if (loadingMessage) loadingMessage.textContent = message;
+			repoInput?.toggleAttribute('disabled', isLoading);
+			usernameInput?.toggleAttribute('disabled', isLoading);
+			testButton?.toggleAttribute('disabled', isLoading);
+			if (testButton) {
+				testButton.textContent = isLoading ? 'Testing commit access...' : 'Run commit test';
+			}
+		}
+
+		function showResult(kind, message) {
+			resultAlert?.classList.remove('hidden', 'alert-success', 'alert-error');
+			resultAlert?.classList.add(kind === 'success' ? 'alert-success' : 'alert-error');
+			if (resultMessage) resultMessage.textContent = message;
+		}
+
+		function delay(ms) {
+			return new Promise((resolve) => window.setTimeout(resolve, ms));
+		}
+
+		async function pollCommitTest(jobId, repoUrl, githubToken) {
+			for (;;) {
+				await delay(5000);
+				setLoading(true, 'Waiting for the execution layer and verifying the sample file on GitHub.');
+
+				const statusUrl = `/api/commit-test-status?jobId=${encodeURIComponent(jobId)}&repoUrl=${encodeURIComponent(repoUrl)}`;
+				const response = await fetch(statusUrl, {
+					headers: {
+						Authorization: `Bearer ${githubToken}`,
+					},
+				});
+				const result = await response.json();
+
+				if (!response.ok || result.status === 'failed') {
+					throw new Error(result.error || 'Commit access test failed.');
+				}
+
+				if (result.status === 'completed') {
+					return result;
+				}
+			}
+		}
+
+		form?.addEventListener('submit', async (event) => {
+			event.preventDefault();
+			const repoUrl = repoInput instanceof HTMLInputElement ? repoInput.value.trim() : '';
+			const githubUsername = usernameInput instanceof HTMLInputElement ? usernameInput.value.trim() : '';
+			const githubToken = readValue('bobdock.github.token');
+
+			if (!repoUrl) return;
+			if (!githubToken) {
+				setupRequiredAlert?.classList.remove('hidden');
+				return;
+			}
+
+			resultAlert?.classList.add('hidden');
+			setupRequiredAlert?.classList.add('hidden');
+			setLoading(true);
+
+			try {
+				const response = await fetch('/api/commit-test', {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+					},
+					body: JSON.stringify({
+						repoUrl,
+						githubUsername,
+						githubToken,
+					}),
+				});
+				const result = await response.json();
+
+				if (!response.ok || !result.success || !result.jobId) {
+					throw new Error(result.error || 'Could not start commit access test.');
+				}
+
+				const completed = await pollCommitTest(result.jobId, repoUrl, githubToken);
+				showResult(
+					'success',
+					`Commit access verified. Bobdock found ${completed.testFilePath} in the repository.`
+				);
+			} catch (error) {
+				const message = error instanceof Error ? error.message : 'Commit access test failed.';
+				showResult('error', message);
+			} finally {
+				setLoading(false);
+			}
+		});
+	</script>
+</Layout>

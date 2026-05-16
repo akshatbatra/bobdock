@@ -1,0 +1,482 @@
+---
+import { marked } from 'marked';
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+import {
+	normalizeDocPath,
+	readGitHubProjectDoc,
+	readGitHubProjectDocs,
+} from '../../../../lib/githubDocsStore';
+import type { GitHubDocEntry } from '../../../../lib/githubDocsStore';
+
+export const prerender = false;
+
+const owner = Astro.params.owner ?? '';
+const repo = Astro.params.repo ?? '';
+const requestedDoc = Astro.params.doc ? normalizeDocPath(Astro.params.doc) : 'overview.md';
+const authToken = readCookieToken(Astro.cookies.get('bobdock.github.token')?.value);
+
+function readCookieToken(value: string | undefined) {
+	if (!value) return undefined;
+
+	try {
+		return decodeURIComponent(value);
+	} catch {
+		return value;
+	}
+}
+
+let project;
+let activeDocPath = requestedDoc;
+let markdown = '';
+let pageTitle = 'Generated documentation';
+let pageDescription = 'Generated repository documentation.';
+
+try {
+	project = await readGitHubProjectDocs(owner, repo, authToken);
+	const requestedDocExists = project.docs.some((doc) => doc.path === requestedDoc);
+	activeDocPath = requestedDocExists ? requestedDoc : project.docs[0]?.path ?? 'overview.md';
+	markdown = await readGitHubProjectDoc(project, activeDocPath, authToken);
+
+	const activeDoc = project.docs.find((doc) => doc.path === activeDocPath);
+	pageTitle = activeDoc?.title ?? project.projectTitle;
+	pageDescription = project.summary;
+} catch {
+	Astro.response.status = 404;
+	markdown =
+		'# Documentation not found\n\nThe requested Bobdock documentation project could not be loaded from GitHub.';
+}
+
+const contentMarkdown = stripLeadingPageHeading(markdown);
+const headings = collectPageHeadings(contentMarkdown);
+const renderer = new marked.Renderer();
+const rendererSlugCounts = new Map<string, number>();
+
+renderer.heading = ({ tokens, depth, text }) => {
+	const headingText = cleanHeadingText(text ?? tokens.map((token) => 'text' in token ? String(token.text) : '').join(' '));
+	const content = renderer.parser.parseInline(tokens);
+
+	if (depth !== 2 && depth !== 3) {
+		return `<h${depth}>${content}</h${depth}>\n`;
+	}
+
+	const slug = createUniqueSlug(headingText, rendererSlugCounts);
+	return `<h${depth} id="${escapeHtmlAttribute(slug)}">${content}</h${depth}>\n`;
+};
+
+const html = await marked.parse(contentMarkdown, { renderer });
+
+function stripLeadingPageHeading(input: string) {
+	return input.replace(/^\s*#\s+.+(?:\r?\n|$)/, '').trimStart();
+}
+
+function collectPageHeadings(input: string) {
+	const slugCounts = new Map<string, number>();
+
+	return marked
+		.lexer(input)
+		.filter((token) => token.type === 'heading' && (token.depth === 2 || token.depth === 3))
+		.map((token) => {
+			const text = cleanHeadingText(token.text);
+			return {
+				depth: token.depth,
+				slug: createUniqueSlug(text, slugCounts),
+				text,
+			};
+		});
+}
+
+function cleanHeadingText(input: string) {
+	return input.replace(/[`*_~]/g, '').trim();
+}
+
+function createUniqueSlug(text: string, slugCounts: Map<string, number>) {
+	const baseSlug =
+		text
+			.toLowerCase()
+			.replace(/[^\w]+/g, '-')
+			.replace(/^-+|-+$/g, '') || 'section';
+	const count = slugCounts.get(baseSlug) ?? 0;
+	slugCounts.set(baseSlug, count + 1);
+
+	return count === 0 ? baseSlug : `${baseSlug}-${count + 1}`;
+}
+
+function escapeHtmlAttribute(input: string) {
+	return input.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+const docs = project?.docs ?? [];
+const sidebarItems = buildNestedSidebarItems(docs, owner, repo, activeDocPath);
+const sidebar = [
+	{
+		label: project?.projectTitle ?? 'Generated documentation',
+		items: sidebarItems,
+	},
+];
+
+type SidebarNode = {
+	label: string;
+	segment: string;
+	path: string;
+	title?: string;
+	link?: string;
+	active?: boolean;
+	children: Map<string, SidebarNode>;
+};
+
+function buildNestedSidebarItems(
+	docs: GitHubDocEntry[],
+	owner: string,
+	repo: string,
+	activeDocPath: string
+) {
+	const root: SidebarNode = {
+		label: 'root',
+		segment: '',
+		path: '',
+		children: new Map(),
+	};
+
+	for (const doc of docs) {
+		const normalizedPath = normalizeDocPath(doc.path);
+		const segments = normalizedPath.split('/');
+		let current = root;
+		let currentPath = '';
+
+		segments.forEach((segment, index) => {
+			const isLeaf = index === segments.length - 1;
+			currentPath = currentPath ? `${currentPath}/${segment}` : segment;
+			const key = segment.toLowerCase();
+			const existing = current.children.get(key);
+			const node =
+				existing ??
+				{
+					label: isLeaf ? formatDocLabel(segment, doc.title) : formatFolderLabel(segment),
+					segment,
+					path: currentPath,
+					children: new Map<string, SidebarNode>(),
+				};
+
+			if (isLeaf) {
+				node.label = formatDocLabel(segment, doc.title);
+				node.title = doc.title;
+				node.link = `/project-docs/${owner}/${repo}/${normalizedPath.replace(/\.md$/i, '')}`;
+				node.active = normalizedPath === activeDocPath;
+			}
+
+			current.children.set(key, node);
+			current = node;
+		});
+	}
+
+	return Array.from(root.children.values()).sort(sortSidebarNodes).map(toSidebarItem);
+}
+
+function toSidebarItem(node: SidebarNode): Record<string, unknown> {
+	const children = Array.from(node.children.values()).sort(sortSidebarNodes).map(toSidebarItem);
+
+	if (children.length) {
+		return {
+			label: node.label,
+			collapsed: !nodeContainsActiveDoc(node),
+			items: node.link
+				? [
+						{
+							label: node.title ?? node.label,
+							link: node.link,
+							attrs: node.active ? { 'aria-current': 'page' } : {},
+						},
+						...children,
+					]
+				: children,
+		};
+	}
+
+	return {
+		label: node.label,
+		link: node.link,
+		attrs: node.active ? { 'aria-current': 'page' } : {},
+	};
+}
+
+function nodeContainsActiveDoc(node: SidebarNode): boolean {
+	if (node.active) {
+		return true;
+	}
+
+	return Array.from(node.children.values()).some(nodeContainsActiveDoc);
+}
+
+function sortSidebarNodes(a: SidebarNode, b: SidebarNode) {
+	const aIsOverview = a.path.toLowerCase() === 'overview.md';
+	const bIsOverview = b.path.toLowerCase() === 'overview.md';
+
+	if (aIsOverview !== bIsOverview) {
+		return aIsOverview ? -1 : 1;
+	}
+
+	const aIsFolder = a.children.size > 0;
+	const bIsFolder = b.children.size > 0;
+
+	if (aIsFolder !== bIsFolder) {
+		return aIsFolder ? -1 : 1;
+	}
+
+	return a.label.localeCompare(b.label, undefined, { numeric: true, sensitivity: 'base' });
+}
+
+function formatFolderLabel(segment: string) {
+	return segment.replace(/[-_]/g, ' ');
+}
+
+function formatDocLabel(segment: string, title: string) {
+	const fallback = segment.replace(/\.md$/i, '').replace(/[-_]/g, ' ');
+	return title && title.trim() ? title.trim() : fallback;
+}
+---
+
+<StarlightPage
+	frontmatter={{
+		title: pageTitle,
+		description: pageDescription,
+	}}
+	sidebar={sidebar}
+	headings={headings}
+>
+	<div class="sl-markdown-content">
+		{project && (
+			<div class="docs-actions not-content">
+				<button
+					id="source-doc-btn"
+					class="docs-action-button docs-action-button-secondary"
+					type="button"
+					data-source-url={`${project.repoUrl}/blob/main/${project.docsRoot}/${activeDocPath}`}
+				>
+					<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg>
+					Source
+				</button>
+			</div>
+		)}
+		<article set:html={html} />
+	</div>
+</StarlightPage>
+
+<template id="update-manifest-template">
+	<div class="sidebar-manifest-action">
+		<button
+			id="update-manifest-btn"
+			class="docs-action-button docs-action-button-subtle docs-action-button-full"
+			type="button"
+		>
+			<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+			Update Manifest
+		</button>
+	</div>
+</template>
+
+<style>
+	.docs-actions {
+		display: flex;
+		align-items: center;
+		justify-content: flex-end;
+		width: 100%;
+		margin-block-end: 1rem;
+		gap: 1rem;
+	}
+
+	.sidebar-manifest-action {
+		width: 100%;
+		padding-block-end: 1rem;
+		margin-block-end: 1rem;
+		border-bottom: 1px solid var(--sl-color-gray-6);
+	}
+
+	.docs-action-button {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.5rem;
+		min-height: 2.25rem;
+		padding: 0.45rem 0.85rem;
+		border: 1px solid transparent;
+		border-radius: 0.5rem;
+		font: inherit;
+		font-size: 0.875rem;
+		font-weight: 650;
+		line-height: 1;
+		cursor: pointer;
+		white-space: nowrap;
+		text-decoration: none;
+		transition:
+			background-color 120ms ease,
+			border-color 120ms ease,
+			color 120ms ease,
+			box-shadow 120ms ease;
+	}
+
+	.docs-action-button svg {
+		flex: 0 0 auto;
+	}
+
+	.docs-action-button-secondary {
+		border-color: var(--sl-color-gray-5);
+		background: var(--sl-color-bg);
+		color: var(--sl-color-text);
+	}
+
+	.docs-action-button-secondary:hover {
+		border-color: var(--sl-color-accent);
+		color: var(--sl-color-accent);
+	}
+
+	.docs-action-button-subtle {
+		background: transparent;
+		border-color: var(--sl-color-gray-5);
+		color: var(--sl-color-gray-2);
+	}
+
+	.docs-action-button-subtle:hover {
+		background: var(--sl-color-gray-6);
+		border-color: var(--sl-color-gray-4);
+		color: var(--sl-color-text);
+	}
+
+	.docs-action-button:disabled {
+		cursor: not-allowed;
+		opacity: 0.65;
+	}
+
+	.docs-action-button-full {
+		width: 100%;
+	}
+</style>
+
+<script>
+	const sourceBtn = document.querySelector('#source-doc-btn') as HTMLButtonElement | null;
+	const storageTokenKey = 'bobdock.github.token';
+	const cookieTokenKey = 'bobdock.github.token';
+
+	function mountUpdateButton() {
+		const existing = document.querySelector('#update-manifest-btn') as HTMLButtonElement | null;
+		if (existing) return existing;
+
+		const template = document.querySelector('#update-manifest-template') as HTMLTemplateElement | null;
+		const sidebarContent = document.querySelector('#starlight__sidebar .sidebar-content');
+		if (!template || !sidebarContent) return null;
+
+		const fragment = template.content.cloneNode(true) as DocumentFragment;
+		const button = fragment.querySelector('#update-manifest-btn') as HTMLButtonElement | null;
+		sidebarContent.prepend(fragment);
+		return button;
+	}
+
+	const updateBtn = mountUpdateButton();
+
+	function readSavedToken() {
+		try {
+			return window.localStorage.getItem(storageTokenKey) || '';
+		} catch {
+			return '';
+		}
+	}
+
+	function readCookieToken() {
+		const cookies = document.cookie.split(';').map((cookie) => cookie.trim());
+		const match = cookies.find((cookie) => cookie.startsWith(`${cookieTokenKey}=`));
+		if (!match) return '';
+
+		try {
+			return decodeURIComponent(match.slice(cookieTokenKey.length + 1));
+		} catch {
+			return match.slice(cookieTokenKey.length + 1);
+		}
+	}
+
+	function writeTokenCookie(token: string) {
+		document.cookie = `${cookieTokenKey}=${encodeURIComponent(token)}; Path=/; SameSite=Lax`;
+	}
+
+	function resolveAuthToken() {
+		return readSavedToken() || readCookieToken();
+	}
+
+	const legacyQueryToken = new URLSearchParams(window.location.search).get('token') || '';
+	if (legacyQueryToken) {
+		try {
+			window.localStorage.setItem(storageTokenKey, legacyQueryToken);
+		} catch {
+			// Cookie fallback below still keeps the current navigation usable.
+		}
+		writeTokenCookie(legacyQueryToken);
+		const url = new URL(window.location.href);
+		url.searchParams.delete('token');
+		window.location.replace(url.toString());
+	} else {
+		const savedToken = readSavedToken();
+		const cookieToken = readCookieToken();
+		if (savedToken && savedToken !== cookieToken) {
+			writeTokenCookie(savedToken);
+			window.location.reload();
+		}
+	}
+
+	async function updateManifest() {
+		if (!updateBtn) return;
+
+		const authToken = resolveAuthToken();
+
+		if (!authToken) {
+			updateBtn.textContent = 'Token missing';
+			setTimeout(() => {
+				if (updateBtn) updateBtn.textContent = 'Update';
+			}, 3000);
+			return;
+		}
+
+		updateBtn.disabled = true;
+		updateBtn.textContent = 'Updating...';
+
+		try {
+			const url = new URL(window.location.href);
+			const pathParts = url.pathname.split('/').filter(Boolean);
+			const ownerIdx = pathParts.indexOf('project-docs');
+			const owner = pathParts[ownerIdx + 1];
+			const repo = pathParts[ownerIdx + 2];
+			const repoUrl = `https://github.com/${decodeURIComponent(owner)}/${decodeURIComponent(repo)}`;
+
+			const response = await fetch('/api/update-manifest', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ repoUrl, githubToken: authToken }),
+			});
+
+			const result = await response.json();
+
+			if (!response.ok || !result.success) {
+				throw new Error(result.error || 'Failed to update manifest');
+			}
+
+			updateBtn.textContent = 'Updated';
+			setTimeout(() => {
+				window.location.reload();
+			}, 700);
+		} catch (error) {
+			updateBtn.textContent = error instanceof Error && error.message.includes('Missing')
+				? 'Token missing'
+				: 'Failed';
+			updateBtn.disabled = false;
+			setTimeout(() => {
+				if (updateBtn) updateBtn.textContent = 'Update';
+			}, 3000);
+		}
+	}
+
+	sourceBtn?.addEventListener('click', () => {
+		const sourceUrl = sourceBtn.dataset.sourceUrl;
+		if (sourceUrl) {
+			window.open(sourceUrl, '_blank', 'noopener,noreferrer');
+		}
+	});
+
+	updateBtn?.addEventListener('click', updateManifest);
+</script>

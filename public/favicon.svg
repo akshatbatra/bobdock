@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Bobdock">
+  <rect width="128" height="128" rx="18" fill="#174f5f"/>
+  <path d="M30 82h68v10H30z" fill="#fbfcfb" opacity=".96"/>
+  <path d="M40 36h48c7 0 12 5 12 12v22H28V48c0-7 5-12 12-12Z" fill="#fbfcfb"/>
+  <path d="M42 52h44M42 66h28" stroke="#174f5f" stroke-width="8" stroke-linecap="square"/>
+  <path d="M30 102h68" stroke="#b85c38" stroke-width="8" stroke-linecap="square"/>
+</svg>

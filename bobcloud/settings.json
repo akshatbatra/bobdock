@@ -1,0 +1,15 @@
+{
+  "ibm": {
+    "licenseConsent": true,
+    "isNotFirstTime": true,
+    "instanceId": "20260320-1730-1190-51d7-2eb712f71838",
+    "teamId": "019dac3e-6ca3-7ebd-9e7b-b0efaf7f7a0c"
+  },
+  "ibm_secrets": {},
+  "security": {
+    "auth": {
+      "selectedType": "apikey"
+    }
+  },
+  "prev_version": "1.0.3"
+}
