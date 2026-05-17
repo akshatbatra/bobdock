@@ -24,7 +24,7 @@ const Hero: React.FC = () => {
               Cloud-Native Agentic Development
             </div>
             <h1 className="premium-headline animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-              Command, dispatch, and manage AI agents in the cloud
+              Command, dispatch, and manage Bob agents in the cloud
             </h1>
             <p className="premium-subheadline animate-fade-in-up" style={{ animationDelay: '0.3s', margin: '0 auto 0.6rem' }}>
               Bobdock transforms software development into a spec-driven experience. Connect your repository, generate intelligent documentation, and dispatch specialized AI agents—all without touching a terminal or IDE.

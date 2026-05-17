@@ -1,0 +1,302 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1200" style="background: #ffffff;">
+  <defs>
+    <!-- Hand-drawn style filter -->
+    <filter id="roughen">
+      <feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="2" result="noise" seed="2"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="2" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+    
+    <!-- Arrow markers -->
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#1e1e1e" />
+    </marker>
+    
+    <marker id="arrow-blue" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#1971c2" />
+    </marker>
+  </defs>
+
+  <!-- Title -->
+  <text x="800" y="50" font-family="'Segoe UI', Arial, sans-serif" font-size="36" font-weight="700" fill="#1e1e1e" text-anchor="middle">
+    Bobdock Architecture
+  </text>
+
+  <!-- Client Layer -->
+  <g id="client-layer">
+    <rect x="80" y="100" width="320" height="260" rx="8" fill="#fff4e6" stroke="#1e1e1e" stroke-width="2.5" filter="url(#roughen)"/>
+    <text x="240" y="135" font-family="'Segoe UI', Arial, sans-serif" font-size="20" font-weight="600" fill="#1e1e1e" text-anchor="middle">Client Layer</text>
+    
+    <!-- Browser -->
+    <rect x="110" y="160" width="260" height="55" rx="6" fill="#ffffff" stroke="#1e1e1e" stroke-width="2" filter="url(#roughen)"/>
+    <circle cx="135" cy="187" r="15" fill="#e3fafc" stroke="#1e1e1e" stroke-width="2"/>
+    <text x="165" y="193" font-family="'Segoe UI', Arial, sans-serif" font-size="16" fill="#1e1e1e">Web Browser</text>
+    
+    <!-- React UI -->
+    <rect x="110" y="230" width="260" height="55" rx="6" fill="#ffffff" stroke="#1e1e1e" stroke-width="2" filter="url(#roughen)"/>
+    <circle cx="135" cy="257" r="15" fill="#d0ebff" stroke="#1e1e1e" stroke-width="2"/>
+    <text x="165" y="263" font-family="'Segoe UI', Arial, sans-serif" font-size="16" fill="#1e1e1e">React Components</text>
+    
+    <!-- Components list -->
+    <rect x="110" y="300" width="260" height="45" rx="4" fill="#f8f9fa" stroke="#868e96" stroke-width="1.5" stroke-dasharray="4,4"/>
+    <text x="240" y="318" font-family="'Segoe UI', Arial, sans-serif" font-size="13" fill="#495057" text-anchor="middle">Hero • Workspace</text>
+    <text x="240" y="335" font-family="'Segoe UI', Arial, sans-serif" font-size="13" fill="#495057" text-anchor="middle">Agents • Context</text>
+  </g>
+
+  <!-- Frontend Framework -->
+  <g id="frontend-framework">
+    <rect x="480" y="100" width="320" height="260" rx="8" fill="#e7f5ff" stroke="#1e1e1e" stroke-width="2.5" filter="url(#roughen)"/>
+    <text x="640" y="135" font-family="'Segoe UI', Arial, sans-serif" font-size="20" font-weight="600" fill="#1e1e1e" text-anchor="middle">Frontend Framework</text>
+    
+    <!-- Astro -->
+    <rect x="510" y="160" width="260" height="55" rx="6" fill="#ffffff" stroke="#1e1e1e" stroke-width="2" filter="url(#roughen)"/>
+    <circle cx="535" cy="187" r="15" fill="#ffd8a8" stroke="#1e1e1e" stroke-width="2"/>
+    <text x="565" y="193" font-family="'Segoe UI', Arial, sans-serif" font-size="16" fill="#1e1e1e">Astro SSR</text>
+    
+    <!-- Starlight -->
+    <rect x="510" y="230" width="260" height="55" rx="6" fill="#ffffff" stroke="#1e1e1e" stroke-width="2" filter="url(#roughen)"/>
+    <circle cx="535" cy="257" r="15" fill="#ffe3e3" stroke="#1e1e1e" stroke-width="2"/>
+    <text x="565" y="263" font-family="'Segoe UI', Arial, sans-serif" font-size="16" fill="#1e1e1e">Starlight Docs</text>
+    
+    <!-- Tailwind -->
+    <rect x="510" y="300" width="260" height="45" rx="4" fill="#f8f9fa" stroke="#868e96" stroke-width="1.5" stroke-dasharray="4,4"/>
+    <text x="640" y="318" font-family="'Segoe UI', Arial, sans-serif" font-size="13" fill="#495057" text-anchor="middle">TailwindCSS</text>
+    <text x="640" y="335" font-family="'Segoe UI', Arial, sans-serif" font-size="13" fill="#495057" text-anchor="middle">DaisyUI</text>
+  </g>
+
+  <!-- API Layer -->
+  <g id="api-layer">
+    <rect x="880" y="100" width="640" height="260" rx="8" fill="#f3f0ff" stroke="#1e1e1e" stroke-width="2.5" filter="url(#roughen)"/>
+    <text x="1200" y="135" font-family="'Segoe UI', Arial, sans-serif" font-size="20" font-weight="600" fill="#1e1e1e" text-anchor="middle">API Endpoints</text>
+    
+    <!-- API Grid - Row 1 -->
+    <rect x="910" y="155" width="180" height="45" rx="4" fill="#ffffff" stroke="#5f3dc4" stroke-width="2"/>
+    <text x="1000" y="175" font-family="'Segoe UI', Arial, sans-serif" font-size="12" fill="#1e1e1e" text-anchor="middle">/api/agent-tasks</text>
+    <text x="1000" y="190" font-family="'Segoe UI', Arial, sans-serif" font-size="10" fill="#868e96" text-anchor="middle">Task dispatch</text>
+    
+    <rect x="1110" y="155" width="180" height="45" rx="4" fill="#ffffff" stroke="#5f3dc4" stroke-width="2"/>
+    <text x="1200" y="175" font-family="'Segoe UI', Arial, sans-serif" font-size="12" fill="#1e1e1e" text-anchor="middle">/api/generate-docs</text>
+    <text x="1200" y="190" font-family="'Segoe UI', Arial, sans-serif" font-size="10" fill="#868e96" text-anchor="middle">Doc generation</text>
+    
+    <rect x="1310" y="155" width="180" height="45" rx="4" fill="#ffffff" stroke="#5f3dc4" stroke-width="2"/>
+    <text x="1400" y="175" font-family="'Segoe UI', Arial, sans-serif" font-size="12" fill="#1e1e1e" text-anchor="middle">/api/agent-prompts</text>
+    <text x="1400" y="190" font-family="'Segoe UI', Arial, sans-serif" font-size="10" fill="#868e96" text-anchor="middle">Custom prompts</text>
+    
+    <!-- API Grid - Row 2 -->
+    <rect x="910" y="215" width="180" height="45" rx="4" fill="#ffffff" stroke="#5f3dc4" stroke-width="2"/>
+    <text x="1000" y="235" font-family="'Segoe UI', Arial, sans-serif" font-size="12" fill="#1e1e1e" text-anchor="middle">/api/context-docs</text>
+    <text x="1000" y="250" font-family="'Segoe UI', Arial, sans-serif" font-size="10" fill="#868e96" text-anchor="middle">Context data</text>
+    
+    <rect x="1110" y="215" width="180" height="45" rx="4" fill="#ffffff" stroke="#5f3dc4" stroke-width="2"/>
+    <text x="1200" y="235" font-family="'Segoe UI', Arial, sans-serif" font-size="12" fill="#1e1e1e" text-anchor="middle">/api/tasks/status</text>
+    <text x="1200" y="250" font-family="'Segoe UI', Arial, sans-serif" font-size="10" fill="#868e96" text-anchor="middle">Task polling</text>
+    
+    <rect x="1310" y="215" width="180" height="45" rx="4" fill="#ffffff" stroke="#5f3dc4" stroke-width="2"/>
+    <text x="1400" y="235" font-family="'Segoe UI', Arial, sans-serif" font-size="12" fill="#1e1e1e" text-anchor="middle">/api/docs/status</text>
+    <text x="1400" y="250" font-family="'Segoe UI', Arial, sans-serif" font-size="10" fill="#868e96" text-anchor="middle">Doc polling</text>
+    
+    <!-- API Grid - Row 3 -->
+    <rect x="910" y="275" width="180" height="45" rx="4" fill="#ffffff" stroke="#5f3dc4" stroke-width="2"/>
+    <text x="1000" y="295" font-family="'Segoe UI', Arial, sans-serif" font-size="12" fill="#1e1e1e" text-anchor="middle">/api/commit-test</text>
+    <text x="1000" y="310" font-family="'Segoe UI', Arial, sans-serif" font-size="10" fill="#868e96" text-anchor="middle">Test commits</text>
+    
+    <rect x="1110" y="275" width="180" height="45" rx="4" fill="#ffffff" stroke="#5f3dc4" stroke-width="2"/>
+    <text x="1200" y="295" font-family="'Segoe UI', Arial, sans-serif" font-size="12" fill="#1e1e1e" text-anchor="middle">/api/get-repo-structure</text>
+    <text x="1200" y="310" font-family="'Segoe UI', Arial, sans-serif" font-size="10" fill="#868e96" text-anchor="middle">Repo info</text>
+    
+    <rect x="1310" y="275" width="180" height="45" rx="4" fill="#ffffff" stroke="#5f3dc4" stroke-width="2"/>
+    <text x="1400" y="295" font-family="'Segoe UI', Arial, sans-serif" font-size="12" fill="#1e1e1e" text-anchor="middle">/api/update-manifest</text>
+    <text x="1400" y="310" font-family="'Segoe UI', Arial, sans-serif" font-size="10" fill="#868e96" text-anchor="middle">Manifest ops</text>
+  </g>
+
+  <!-- Business Logic -->
+  <g id="business-logic">
+    <rect x="80" y="440" width="720" height="200" rx="8" fill="#d3f9d8" stroke="#1e1e1e" stroke-width="2.5" filter="url(#roughen)"/>
+    <text x="440" y="475" font-family="'Segoe UI', Arial, sans-serif" font-size="20" font-weight="600" fill="#1e1e1e" text-anchor="middle">Business Logic</text>
+    
+    <!-- Agent Jobs -->
+    <rect x="110" y="500" width="200" height="120" rx="6" fill="#ffffff" stroke="#2f9e44" stroke-width="2.5" filter="url(#roughen)"/>
+    <circle cx="140" cy="535" r="18" fill="#b2f2bb" stroke="#1e1e1e" stroke-width="2"/>
+    <text x="220" y="525" font-family="'Segoe UI', Arial, sans-serif" font-size="14" font-weight="600" fill="#1e1e1e" text-anchor="middle">Agent Task</text>
+    <text x="220" y="543" font-family="'Segoe UI', Arial, sans-serif" font-size="14" font-weight="600" fill="#1e1e1e" text-anchor="middle">Jobs Manager</text>
+    <text x="220" y="570" font-family="'Segoe UI', Arial, sans-serif" font-size="11" fill="#495057" text-anchor="middle">In-memory</text>
+    <text x="220" y="585" font-family="'Segoe UI', Arial, sans-serif" font-size="11" fill="#495057" text-anchor="middle">tracking</text>
+    
+    <!-- Doc Jobs -->
+    <rect x="340" y="500" width="200" height="120" rx="6" fill="#ffffff" stroke="#2f9e44" stroke-width="2.5" filter="url(#roughen)"/>
+    <circle cx="370" cy="535" r="18" fill="#b2f2bb" stroke="#1e1e1e" stroke-width="2"/>
+    <text x="450" y="525" font-family="'Segoe UI', Arial, sans-serif" font-size="14" font-weight="600" fill="#1e1e1e" text-anchor="middle">Doc Generation</text>
+    <text x="450" y="543" font-family="'Segoe UI', Arial, sans-serif" font-size="14" font-weight="600" fill="#1e1e1e" text-anchor="middle">Jobs Manager</text>
+    <text x="450" y="570" font-family="'Segoe UI', Arial, sans-serif" font-size="11" fill="#495057" text-anchor="middle">Status</text>
+    <text x="450" y="585" font-family="'Segoe UI', Arial, sans-serif" font-size="11" fill="#495057" text-anchor="middle">polling</text>
+    
+    <!-- GitHub Store -->
+    <rect x="570" y="500" width="200" height="120" rx="6" fill="#ffffff" stroke="#2f9e44" stroke-width="2.5" filter="url(#roughen)"/>
+    <circle cx="610" cy="535" r="18" fill="#b2f2bb" stroke="#1e1e1e" stroke-width="2"/>
+    <text x="670" y="525" font-family="'Segoe UI', Arial, sans-serif" font-size="14" font-weight="600" fill="#1e1e1e" text-anchor="middle">GitHub Docs</text>
+    <text x="670" y="543" font-family="'Segoe UI', Arial, sans-serif" font-size="14" font-weight="600" fill="#1e1e1e" text-anchor="middle">Store</text>
+    <text x="670" y="570" font-family="'Segoe UI', Arial, sans-serif" font-size="11" fill="#495057" text-anchor="middle">Context</text>
+    <text x="670" y="585" font-family="'Segoe UI', Arial, sans-serif" font-size="11" fill="#495057" text-anchor="middle">management</text>
+  </g>
+
+  <!-- Bob Agent Service -->
+  <g id="bob-agent">
+    <rect x="880" y="440" width="320" height="200" rx="8" fill="#fff3bf" stroke="#1e1e1e" stroke-width="2.5" filter="url(#roughen)"/>
+    <text x="1040" y="475" font-family="'Segoe UI', Arial, sans-serif" font-size="20" font-weight="600" fill="#1e1e1e" text-anchor="middle">Bob Agent Service</text>
+    
+    <rect x="910" y="500" width="260" height="120" rx="6" fill="#ffffff" stroke="#f59f00" stroke-width="2.5" filter="url(#roughen)"/>
+    <circle cx="950" cy="545" r="25" fill="#ffe066" stroke="#1e1e1e" stroke-width="2"/>
+    <circle cx="950" cy="540" r="8" fill="#1e1e1e"/>
+    <path d="M 940 555 Q 950 563 960 555" stroke="#1e1e1e" stroke-width="2.5" fill="none"/>
+    <text x="1050" y="535" font-family="'Segoe UI', Arial, sans-serif" font-size="15" font-weight="600" fill="#1e1e1e" text-anchor="middle">Execution Engine</text>
+    <text x="1050" y="560" font-family="'Segoe UI', Arial, sans-serif" font-size="12" fill="#495057" text-anchor="middle">Orchestrates</text>
+    <text x="1050" y="577" font-family="'Segoe UI', Arial, sans-serif" font-size="12" fill="#495057" text-anchor="middle">AI agents</text>
+    <text x="1050" y="594" font-family="'Segoe UI', Arial, sans-serif" font-size="12" fill="#495057" text-anchor="middle">Manages workflows</text>
+  </g>
+
+  <!-- Agent Roles -->
+  <g id="agent-roles">
+    <rect x="1280" y="440" width="240" height="200" rx="8" fill="#e5dbff" stroke="#1e1e1e" stroke-width="2.5" filter="url(#roughen)"/>
+    <text x="1400" y="475" font-family="'Segoe UI', Arial, sans-serif" font-size="20" font-weight="600" fill="#1e1e1e" text-anchor="middle">Agent Roles</text>
+    
+    <!-- Implementor -->
+    <rect x="1300" y="495" width="100" height="60" rx="4" fill="#ffffff" stroke="#7950f2" stroke-width="2"/>
+    <text x="1350" y="518" font-family="'Segoe UI', Arial, sans-serif" font-size="13" font-weight="600" fill="#1e1e1e" text-anchor="middle">Implementor</text>
+    <text x="1350" y="535" font-family="'Segoe UI', Arial, sans-serif" font-size="11" fill="#495057" text-anchor="middle">Build</text>
+    <text x="1350" y="548" font-family="'Segoe UI', Arial, sans-serif" font-size="11" fill="#495057" text-anchor="middle">features</text>
+    
+    <!-- Designer -->
+    <rect x="1410" y="495" width="100" height="60" rx="4" fill="#ffffff" stroke="#7950f2" stroke-width="2"/>
+    <text x="1460" y="518" font-family="'Segoe UI', Arial, sans-serif" font-size="13" font-weight="600" fill="#1e1e1e" text-anchor="middle">Designer</text>
+    <text x="1460" y="535" font-family="'Segoe UI', Arial, sans-serif" font-size="11" fill="#495057" text-anchor="middle">Polish</text>
+    <text x="1460" y="548" font-family="'Segoe UI', Arial, sans-serif" font-size="11" fill="#495057" text-anchor="middle">UI/UX</text>
+    
+    <!-- Debugger -->
+    <rect x="1300" y="565" width="100" height="60" rx="4" fill="#ffffff" stroke="#7950f2" stroke-width="2"/>
+    <text x="1350" y="588" font-family="'Segoe UI', Arial, sans-serif" font-size="13" font-weight="600" fill="#1e1e1e" text-anchor="middle">Debugger</text>
+    <text x="1350" y="605" font-family="'Segoe UI', Arial, sans-serif" font-size="11" fill="#495057" text-anchor="middle">Fix</text>
+    <text x="1350" y="618" font-family="'Segoe UI', Arial, sans-serif" font-size="11" fill="#495057" text-anchor="middle">bugs</text>
+    
+    <!-- Reviewer -->
+    <rect x="1410" y="565" width="100" height="60" rx="4" fill="#ffffff" stroke="#7950f2" stroke-width="2"/>
+    <text x="1460" y="588" font-family="'Segoe UI', Arial, sans-serif" font-size="13" font-weight="600" fill="#1e1e1e" text-anchor="middle">Reviewer</text>
+    <text x="1460" y="605" font-family="'Segoe UI', Arial, sans-serif" font-size="11" fill="#495057" text-anchor="middle">Code</text>
+    <text x="1460" y="618" font-family="'Segoe UI', Arial, sans-serif" font-size="11" fill="#495057" text-anchor="middle">review</text>
+  </g>
+
+  <!-- Data Storage -->
+  <g id="data-storage">
+    <rect x="80" y="710" width="720" height="150" rx="8" fill="#ffe3e3" stroke="#1e1e1e" stroke-width="2.5" filter="url(#roughen)"/>
+    <text x="440" y="745" font-family="'Segoe UI', Arial, sans-serif" font-size="20" font-weight="600" fill="#1e1e1e" text-anchor="middle">Data Storage</text>
+    
+    <!-- Jobs Map -->
+    <rect x="140" y="770" width="250" height="70" rx="6" fill="#ffffff" stroke="#fa5252" stroke-width="2.5" filter="url(#roughen)"/>
+    <rect x="165" y="790" width="30" height="30" rx="3" fill="#ffc9c9" stroke="#1e1e1e" stroke-width="2"/>
+    <text x="215" y="800" font-family="'Segoe UI', Arial, sans-serif" font-size="14" font-weight="600" fill="#1e1e1e">In-Memory</text>
+    <text x="215" y="817" font-family="'Segoe UI', Arial, sans-serif" font-size="14" font-weight="600" fill="#1e1e1e">Jobs Map</text>
+    <text x="215" y="833" font-family="'Segoe UI', Arial, sans-serif" font-size="11" fill="#495057">TTL: 1 hour</text>
+    
+    <!-- Docs Cache -->
+    <rect x="430" y="770" width="250" height="70" rx="6" fill="#ffffff" stroke="#fa5252" stroke-width="2.5" filter="url(#roughen)"/>
+    <rect x="455" y="790" width="30" height="30" rx="3" fill="#ffc9c9" stroke="#1e1e1e" stroke-width="2"/>
+    <text x="505" y="800" font-family="'Segoe UI', Arial, sans-serif" font-size="14" font-weight="600" fill="#1e1e1e">Documentation</text>
+    <text x="505" y="817" font-family="'Segoe UI', Arial, sans-serif" font-size="14" font-weight="600" fill="#1e1e1e">Cache</text>
+    <text x="505" y="833" font-family="'Segoe UI', Arial, sans-serif" font-size="11" fill="#495057">Fast retrieval</text>
+  </g>
+
+  <!-- GitHub -->
+  <g id="github">
+    <rect x="880" y="710" width="640" height="150" rx="8" fill="#f8f9fa" stroke="#1e1e1e" stroke-width="2.5" filter="url(#roughen)"/>
+    <text x="1200" y="745" font-family="'Segoe UI', Arial, sans-serif" font-size="20" font-weight="600" fill="#1e1e1e" text-anchor="middle">Version Control</text>
+    
+    <rect x="1000" y="770" width="400" height="70" rx="6" fill="#24292e" stroke="#1e1e1e" stroke-width="2.5"/>
+    <circle cx="1050" cy="805" r="20" fill="#ffffff"/>
+    <path d="M 1050 790 Q 1040 805 1050 820 Q 1060 805 1050 790" fill="#24292e"/>
+    <text x="1090" y="798" font-family="'Segoe UI', Arial, sans-serif" font-size="17" font-weight="600" fill="#ffffff">GitHub MCP</text>
+    <text x="1090" y="818" font-family="'Segoe UI', Arial, sans-serif" font-size="12" fill="#d1d5db">Repository operations • Pull requests</text>
+    <text x="1090" y="833" font-family="'Segoe UI', Arial, sans-serif" font-size="12" fill="#d1d5db">Branch management</text>
+  </g>
+
+  <!-- Connection Arrows -->
+  <g id="connections" stroke="#1e1e1e" stroke-width="2.5" fill="none">
+    <!-- Client to Frontend -->
+    <path d="M 400 230 L 480 230" marker-end="url(#arrow)"/>
+    
+    <!-- Frontend to API -->
+    <path d="M 800 230 L 880 230" marker-end="url(#arrow)"/>
+    
+    <!-- API to Business Logic -->
+    <path d="M 1200 360 L 1200 400 L 440 400 L 440 440" marker-end="url(#arrow)"/>
+    
+    <!-- Business Logic to Bob Agent -->
+    <path d="M 800 560 L 880 560" marker-end="url(#arrow)"/>
+    
+    <!-- Bob Agent to Agent Roles -->
+    <path d="M 1200 560 L 1280 560" marker-end="url(#arrow)"/>
+    
+    <!-- Business Logic to Data Storage -->
+    <path d="M 440 640 L 440 710" marker-end="url(#arrow)"/>
+    
+    <!-- Agent Roles to GitHub -->
+    <path d="M 1400 640 L 1400 670 L 1200 670 L 1200 710" marker-end="url(#arrow)" stroke="#1971c2"/>
+    
+    <!-- API to GitHub (direct) -->
+    <path d="M 1450 360 L 1450 710" marker-end="url(#arrow)" stroke-dasharray="8,8" stroke="#868e96"/>
+  </g>
+
+  <!-- Legend -->
+  <g id="legend">
+    <rect x="80" y="920" width="1440" height="240" rx="8" fill="#f8f9fa" stroke="#1e1e1e" stroke-width="2" stroke-dasharray="8,8"/>
+    <text x="800" y="955" font-family="'Segoe UI', Arial, sans-serif" font-size="22" font-weight="700" fill="#1e1e1e" text-anchor="middle">System Flow</text>
+    
+    <!-- Flow steps -->
+    <g id="flow-1">
+      <circle cx="120" cy="990" r="20" fill="#d0ebff" stroke="#1e1e1e" stroke-width="2"/>
+      <text x="120" y="998" font-family="'Segoe UI', Arial, sans-serif" font-size="16" font-weight="700" fill="#1e1e1e" text-anchor="middle">1</text>
+      <text x="160" y="985" font-family="'Segoe UI', Arial, sans-serif" font-size="13" font-weight="600" fill="#1e1e1e">User Interaction</text>
+      <text x="160" y="1003" font-family="'Segoe UI', Arial, sans-serif" font-size="11" fill="#495057">React components in browser, served by Astro SSR</text>
+    </g>
+    
+    <g id="flow-2">
+      <circle cx="120" cy="1040" r="20" fill="#e5dbff" stroke="#1e1e1e" stroke-width="2"/>
+      <text x="120" y="1048" font-family="'Segoe UI', Arial, sans-serif" font-size="16" font-weight="700" fill="#1e1e1e" text-anchor="middle">2</text>
+      <text x="160" y="1035" font-family="'Segoe UI', Arial, sans-serif" font-size="13" font-weight="600" fill="#1e1e1e">API Processing</text>
+      <text x="160" y="1053" font-family="'Segoe UI', Arial, sans-serif" font-size="11" fill="#495057">RESTful endpoints handle requests and status polling</text>
+    </g>
+    
+    <g id="flow-3">
+      <circle cx="120" cy="1090" r="20" fill="#d3f9d8" stroke="#1e1e1e" stroke-width="2"/>
+      <text x="120" y="1098" font-family="'Segoe UI', Arial, sans-serif" font-size="16" font-weight="700" fill="#1e1e1e" text-anchor="middle">3</text>
+      <text x="160" y="1085" font-family="'Segoe UI', Arial, sans-serif" font-size="13" font-weight="600" fill="#1e1e1e">Job Management</text>
+      <text x="160" y="1103" font-family="'Segoe UI', Arial, sans-serif" font-size="11" fill="#495057">Track agent tasks and docs with TTL-based cleanup</text>
+    </g>
+    
+    <g id="flow-4">
+      <circle cx="820" cy="990" r="20" fill="#fff3bf" stroke="#1e1e1e" stroke-width="2"/>
+      <text x="820" y="998" font-family="'Segoe UI', Arial, sans-serif" font-size="16" font-weight="700" fill="#1e1e1e" text-anchor="middle">4</text>
+      <text x="860" y="985" font-family="'Segoe UI', Arial, sans-serif" font-size="13" font-weight="600" fill="#1e1e1e">Agent Execution</text>
+      <text x="860" y="1003" font-family="'Segoe UI', Arial, sans-serif" font-size="11" fill="#495057">Bob Agent orchestrates specialized AI agents</text>
+    </g>
+    
+    <g id="flow-5">
+      <circle cx="820" cy="1040" r="20" fill="#ffe3e3" stroke="#1e1e1e" stroke-width="2"/>
+      <text x="820" y="1048" font-family="'Segoe UI', Arial, sans-serif" font-size="16" font-weight="700" fill="#1e1e1e" text-anchor="middle">5</text>
+      <text x="860" y="1035" font-family="'Segoe UI', Arial, sans-serif" font-size="13" font-weight="600" fill="#1e1e1e">GitHub Integration</text>
+      <text x="860" y="1053" font-family="'Segoe UI', Arial, sans-serif" font-size="11" fill="#495057">Agents create branches and PRs for all changes</text>
+    </g>
+    
+    <g id="flow-6">
+      <circle cx="820" cy="1090" r="20" fill="#ffc9c9" stroke="#1e1e1e" stroke-width="2"/>
+      <text x="820" y="1098" font-family="'Segoe UI', Arial, sans-serif" font-size="16" font-weight="700" fill="#1e1e1e" text-anchor="middle">6</text>
+      <text x="860" y="1085" font-family="'Segoe UI', Arial, sans-serif" font-size="13" font-weight="600" fill="#1e1e1e">Data Persistence</text>
+      <text x="860" y="1103" font-family="'Segoe UI', Arial, sans-serif" font-size="11" fill="#495057">In-memory storage with caching for performance</text>
+    </g>
+    
+    <!-- Tech stack -->
+    <rect x="100" y="1125" width="1400" height="25" rx="4" fill="#ffffff" stroke="#868e96" stroke-width="1.5"/>
+    <text x="800" y="1143" font-family="'Segoe UI', Arial, sans-serif" font-size="12" fill="#495057" text-anchor="middle">
+      <tspan font-weight="600">Tech Stack:</tspan> Astro • React • Node.js • TypeScript • TailwindCSS • DaisyUI • Starlight • GitHub API
+    </text>
+  </g>
+</svg>
+
+<!-- Made with Bob -->

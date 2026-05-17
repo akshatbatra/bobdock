@@ -45,6 +45,20 @@ export const POST: APIRoute = async ({ request }) => {
     return json({ success: false, error: 'BOB_AGENT_BASE_URL is not configured.' }, 500);
   }
 
+  // Fetch custom prompt if available
+  let roleInstruction = '';
+  try {
+    const promptResponse = await fetch(`${new URL(request.url).origin}/api/agent-prompts?role=${role}&repoUrl=${encodeURIComponent(repoUrl)}`);
+    if (promptResponse.ok) {
+      const promptResult = await promptResponse.json();
+      if (promptResult.success && promptResult.prompt) {
+        roleInstruction = promptResult.prompt;
+      }
+    }
+  } catch {
+    // Fall back to default if custom prompt fetch fails
+  }
+
   const prompt = buildAgentPrompt({
     repoUrl,
     githubUsername,
@@ -52,6 +66,7 @@ export const POST: APIRoute = async ({ request }) => {
     title,
     spec,
     references,
+    customRoleInstruction: roleInstruction,
   });
 
   try {
@@ -131,13 +146,59 @@ function buildAgentPrompt(input: {
   title: string;
   spec: string;
   references: AgentTaskReference[];
+  customRoleInstruction?: string;
 }) {
-  const roleInstruction = {
-    implementor: 'You are the Implementor agent. Focus on complete, production-quality feature implementation.',
-    designer: 'You are the Designer agent. Focus on UI quality, interaction polish, responsive layout, and visual consistency.',
-    debugger: 'You are the Debugger agent. Focus on reproducing, isolating, and fixing defects with targeted verification.',
-    reviewer: 'You are the Reviewer agent. Focus on finding gaps, regressions, risks, missing tests, and actionable review findings.',
-  }[input.role];
+  // Use custom instruction if provided, otherwise fall back to defaults
+  const roleInstruction = input.customRoleInstruction || {
+    implementor: `You are the Implementor agent. Focus on complete, production-quality feature implementation.
+
+# EXECUTION REQUIREMENTS
+- Use the attached Bobdock documentation references as the first source of architectural context.
+- Use GitHub and MCP tools available in the cloud environment for repository work.
+- Make concrete progress; do not stop after restating a plan.
+- Follow the behavior implied by your agent role.
+- IMPORTANT: When code changes are made, you MUST create a new branch and open a pull request. DO NOT commit directly to the default branch.
+- Create a descriptive branch name based on the task (e.g., "bobdock-agent/implement-feature-name").
+- All commits MUST be authored as "Bobdock Agent <agent@bobdock.app>" to identify the agent separately from the user.
+- In the pull request description, include a summary of changes, verification performed, and any relevant context.
+- Return a concise completion summary with the pull request URL, changed files, verification performed, and any blockers.`,
+    designer: `You are the Designer agent. Focus on UI quality, interaction polish, responsive layout, and visual consistency.
+
+# EXECUTION REQUIREMENTS
+- Use the attached Bobdock documentation references as the first source of architectural context.
+- Use GitHub and MCP tools available in the cloud environment for repository work.
+- Make concrete progress; do not stop after restating a plan.
+- Follow the behavior implied by your agent role.
+- IMPORTANT: When code changes are made, you MUST create a new branch and open a pull request. DO NOT commit directly to the default branch.
+- Create a descriptive branch name based on the task (e.g., "bobdock-agent/design-feature-name").
+- All commits MUST be authored as "Bobdock Agent <agent@bobdock.app>" to identify the agent separately from the user.
+- In the pull request description, include a summary of changes, verification performed, and any relevant context.
+- Return a concise completion summary with the pull request URL, changed files, verification performed, and any blockers.`,
+    debugger: `You are the Debugger agent. Focus on reproducing, isolating, and fixing defects with targeted verification.
+
+# EXECUTION REQUIREMENTS
+- Use the attached Bobdock documentation references as the first source of architectural context.
+- Use GitHub and MCP tools available in the cloud environment for repository work.
+- Make concrete progress; do not stop after restating a plan.
+- Follow the behavior implied by your agent role.
+- IMPORTANT: When code changes are made, you MUST create a new branch and open a pull request. DO NOT commit directly to the default branch.
+- Create a descriptive branch name based on the task (e.g., "bobdock-agent/fix-bug-name").
+- All commits MUST be authored as "Bobdock Agent <agent@bobdock.app>" to identify the agent separately from the user.
+- In the pull request description, include a summary of changes, verification performed, and any relevant context.
+- Return a concise completion summary with the pull request URL, changed files, verification performed, and any blockers.`,
+    reviewer: `You are the Reviewer agent. Focus on finding gaps, regressions, risks, missing tests, and actionable review findings.
+
+# EXECUTION REQUIREMENTS
+- Use the attached Bobdock documentation references as the first source of architectural context.
+- Use GitHub and MCP tools available in the cloud environment for repository work.
+- Make concrete progress; do not stop after restating a plan.
+- Follow the behavior implied by your agent role.
+- IMPORTANT: When code changes are made, you MUST create a new branch and open a pull request. DO NOT commit directly to the default branch.
+- Create a descriptive branch name based on the task (e.g., "bobdock-agent/review-improvements").
+- All commits MUST be authored as "Bobdock Agent <agent@bobdock.app>" to identify the agent separately from the user.
+- In the pull request description, include a summary of changes, verification performed, and any relevant context.
+- Return a concise completion summary with the pull request URL, changed files, verification performed, and any blockers.`,
+  }[input.role] || '';
 
   const userContext = input.githubUsername ? `The requesting GitHub username is ${input.githubUsername}.` : '';
   const references = input.references.length
@@ -164,18 +225,6 @@ ${references}
 
 # USER SPEC
 ${input.spec}
-
-# EXECUTION REQUIREMENTS
-- BEFORE ANY GIT OPERATIONS: Configure Git identity by running these commands:
-  git config user.name "Bobdock Agent"
-  git config user.email "agent@bobdock.app"
-- Use the attached Bobdock documentation references as the first source of architectural context.
-- Use GitHub and MCP tools available in the cloud environment for repository work.
-- Make concrete progress; do not stop after restating a plan.
-- Follow the behavior implied by your agent role.
-- If code changes are made, commit them or open a pull request according to repository permissions.
-- All commits MUST be authored as "Bobdock Agent <agent@bobdock.app>" to identify the agent separately from the user.
-- Return a concise completion summary with changed files, verification performed, and any blockers.
 `;
 }
 

@@ -92,9 +92,6 @@ Repository:
 ${repoUrl}
 
 Task:
-- BEFORE ANY GIT OPERATIONS: Configure Git identity by running these commands:
-  git config user.name "Bobdock Agent"
-  git config user.email "agent@bobdock.app"
 - Use GitHub CLI (gh) and git for all GitHub operations. MCP is not available.
 - Authenticate GitHub CLI with GH_TOKEN or GITHUB_TOKEN from the environment.
 - Create or update a root-level file named ${testFilePath}.

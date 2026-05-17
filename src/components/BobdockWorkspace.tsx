@@ -115,6 +115,10 @@ export default function BobdockWorkspace() {
   const [taskStatus, setTaskStatus] = useState('');
   const [taskOutput, setTaskOutput] = useState('');
   const [docsLoaded, setDocsLoaded] = useState(false);
+  const [showPromptModal, setShowPromptModal] = useState(false);
+  const [editingPrompt, setEditingPrompt] = useState('');
+  const [loadingPrompt, setLoadingPrompt] = useState(false);
+  const [savingPrompt, setSavingPrompt] = useState(false);
 
   const selectedAgent = useMemo(
     () => agents.find((agent) => agent.role === selectedRole) ?? agents[0],
@@ -409,6 +413,96 @@ export default function BobdockWorkspace() {
     setActiveTab('agents');
   }
 
+  async function openPromptEditor() {
+    setShowPromptModal(true);
+    setLoadingPrompt(true);
+    setError('');
+
+    try {
+      const response = await fetch(`/api/agent-prompts?role=${selectedRole}&repoUrl=${encodeURIComponent(repoUrl)}`);
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || 'Failed to load agent prompt');
+      }
+
+      setEditingPrompt(result.prompt || '');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load agent prompt');
+      setShowPromptModal(false);
+    } finally {
+      setLoadingPrompt(false);
+    }
+  }
+
+  async function savePrompt() {
+    setSavingPrompt(true);
+    setError('');
+
+    try {
+      const response = await fetch('/api/agent-prompts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          role: selectedRole,
+          prompt: editingPrompt,
+          repoUrl,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || 'Failed to save agent prompt');
+      }
+
+      // Save to localStorage as well
+      writeValue(`bobdock.prompt.${selectedRole}`, editingPrompt);
+      setNotice(`${selectedAgent.name} system prompt updated successfully`);
+      setShowPromptModal(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to save agent prompt');
+    } finally {
+      setSavingPrompt(false);
+    }
+  }
+
+  async function resetPrompt() {
+    if (!confirm(`Reset ${selectedAgent.name} prompt to default?`)) return;
+
+    setSavingPrompt(true);
+    setError('');
+
+    try {
+      const response = await fetch(`/api/agent-prompts?role=${selectedRole}&repoUrl=${encodeURIComponent(repoUrl)}`, {
+        method: 'DELETE',
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || 'Failed to reset agent prompt');
+      }
+
+      // Remove from localStorage
+      removeValue(`bobdock.prompt.${selectedRole}`);
+      
+      // Reload the default prompt
+      const getResponse = await fetch(`/api/agent-prompts?role=${selectedRole}&repoUrl=${encodeURIComponent(repoUrl)}`);
+      const getResult = await getResponse.json();
+      
+      if (getResponse.ok && getResult.success) {
+        setEditingPrompt(getResult.prompt || '');
+      }
+
+      setNotice(`${selectedAgent.name} system prompt reset to default`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to reset agent prompt');
+    } finally {
+      setSavingPrompt(false);
+    }
+  }
+
   async function dispatchTask() {
     setError('');
     setTaskOutput('');
@@ -548,6 +642,7 @@ export default function BobdockWorkspace() {
               spec={spec}
               setSpec={setSpec}
               openContext={() => setActiveTab('context')}
+              openPromptEditor={openPromptEditor}
               dispatchTask={dispatchTask}
               isDispatching={isDispatching}
               taskStatus={taskStatus}
@@ -603,6 +698,40 @@ export default function BobdockWorkspace() {
               {excludedItems.length > 0 ? `Generate excluding ${excludedItems.length}` : 'Generate docs'}
             </button>
           </div>
+        </Modal>
+      )}
+
+      {showPromptModal && (
+        <Modal title={`${selectedAgent.name} System Instructions`} onClose={() => setShowPromptModal(false)} wide>
+          <p className="modal-copy">
+            Customize the system instructions for the {selectedAgent.name} agent. These instructions define how the agent behaves and what it prioritizes.
+          </p>
+          {loadingPrompt ? (
+            <div className="loading-block">Loading system instructions...</div>
+          ) : (
+            <>
+              <label className="spec-label">
+                <span>System Instructions</span>
+                <textarea
+                  value={editingPrompt}
+                  onChange={(event) => setEditingPrompt(event.target.value)}
+                  placeholder="Enter system instructions..."
+                />
+              </label>
+              {error && <p className="error-text">{error}</p>}
+              <div className="modal-actions">
+                <button className="secondary-action" type="button" onClick={() => setShowPromptModal(false)}>
+                  Cancel
+                </button>
+                <button className="secondary-action" type="button" onClick={resetPrompt} disabled={savingPrompt}>
+                  Reset to Default
+                </button>
+                <button className="primary-action" type="button" onClick={savePrompt} disabled={savingPrompt || !editingPrompt.trim()}>
+                  {savingPrompt ? 'Saving...' : 'Save Instructions'}
+                </button>
+              </div>
+            </>
+          )}
         </Modal>
       )}
     </main>
@@ -679,13 +808,30 @@ function AgentsPanel({
   spec,
   setSpec,
   openContext,
+  openPromptEditor,
   dispatchTask,
   isDispatching,
   taskStatus,
   taskOutput,
 }: {
-  agents: typeof agents;
-  selectedAgent: (typeof agents)[number];
+  agents: Array<{
+    role: AgentRole;
+    name: string;
+    accent: string;
+    label: string;
+    mark: string;
+    description: string;
+    guidance: string;
+  }>;
+  selectedAgent: {
+    role: AgentRole;
+    name: string;
+    accent: string;
+    label: string;
+    mark: string;
+    description: string;
+    guidance: string;
+  };
   selectedRole: AgentRole;
   setSelectedRole: (role: AgentRole) => void;
   title: string;
@@ -693,6 +839,7 @@ function AgentsPanel({
   spec: string;
   setSpec: (value: string) => void;
   openContext: () => void;
+  openPromptEditor: () => void;
   dispatchTask: () => void;
   isDispatching: boolean;
   taskStatus: string;
@@ -728,6 +875,15 @@ function AgentsPanel({
             <h2>Task specification</h2>
             <p>{selectedAgent.guidance}</p>
           </div>
+          <button
+            className="secondary-action"
+            type="button"
+            onClick={openPromptEditor}
+            style={{ marginLeft: 'auto', alignSelf: 'flex-start' }}
+            title="View and edit system instructions"
+          >
+            ⚙️ Instructions
+          </button>
         </div>
 
         <label>
