@@ -160,6 +160,9 @@ These agents will reference this documentation BEFORE starting work to understan
 ${repoUrl}
 
 # EXECUTION REQUIREMENTS
+- BEFORE ANY GIT OPERATIONS: Configure Git identity by running these commands:
+  git config user.name "Bobdock Agent"
+  git config user.email "agent@bobdock.app"
 - Print exactly one progress line beginning with "Bobdock progress:" before starting work
 - Use MCP GitHub tools for ALL GitHub operations (reading files, creating files, committing)
 - Do NOT stop after planning - you must create files, commit them, and verify visibility on GitHub
@@ -167,6 +170,7 @@ ${repoUrl}
 - Do NOT create files locally - use MCP GitHub tools DIRECTLY to create files in the repository
 - Verify all .bobdock files are committed and visible on the default branch before completing
 - If branch protections exist, create a pull request and clearly report that docs will be available after merge
+- All commits MUST be authored as "Bobdock Agent <agent@bobdock.app>" to identify the agent separately from the user
 
 # CRITICAL MCP GITHUB TOOL USAGE REQUIREMENTS
 IMPORTANT: Follow these rules when using MCP GitHub tools to avoid errors:

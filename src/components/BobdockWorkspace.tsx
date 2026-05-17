@@ -94,7 +94,6 @@ export default function BobdockWorkspace() {
   const [selectedRole, setSelectedRole] = useState<AgentRole>('implementor');
   const [title, setTitle] = useState('');
   const [spec, setSpec] = useState('');
-  const [references, setReferences] = useState<ContextReference[]>([]);
   const [docs, setDocs] = useState<DocEntry[]>([]);
   const [projectTitle, setProjectTitle] = useState('');
   const [selectedDoc, setSelectedDoc] = useState('');
@@ -123,7 +122,6 @@ export default function BobdockWorkspace() {
   );
 
   const repoLabel = useMemo(() => repoUrl.replace(/^https:\/\/github\.com\//, '').replace(/\.git$/i, ''), [repoUrl]);
-  const docsReady = docs.length > 0;
 
   useEffect(() => {
     const savedUsername = readValue(storageKeys.username);
@@ -186,7 +184,6 @@ export default function BobdockWorkspace() {
     setRepoUrl('');
     setDocs([]);
     setProjectTitle('');
-    setReferences([]);
     setDocsLoaded(false);
     setNotice('');
     setError('');
@@ -398,45 +395,18 @@ export default function BobdockWorkspace() {
   }
 
   function attachReference(ref: ContextReference) {
-    console.log('attachReference called with:', ref);
-    
-    setReferences((current) => {
-      const exists = current.some(
-        (item) => item.path === ref.path && (item.heading || '') === (ref.heading || '')
-      );
-      const newRefs = exists ? current : [...current, ref];
-      console.log('References updated:', newRefs.length, 'total references');
-      return newRefs;
-    });
-
     const label = ref.heading ? `${ref.title} > ${ref.heading}` : ref.title;
     const marker = `[Context: ${label}]`;
     
-    // If we have full markdown content (excerpt), include it in a visible format
     let insertion: string;
     if (ref.excerpt && ref.excerpt.trim()) {
-      // Include the full markdown content directly in the spec
-      // Add clear separators so it's visible and editable
       insertion = `\n\n---\n### ${marker}\n\n${ref.excerpt}\n\n---\n`;
-      console.log('Inserting content with excerpt, length:', ref.excerpt.length);
     } else {
-      // Fallback to simple reference if no content available
       insertion = `\n\n${marker} (${ref.path}${ref.heading ? `#${ref.heading}` : ''})\n`;
-      console.log('Inserting simple reference (no excerpt)');
     }
     
-    setSpec((current) => {
-      const newSpec = `${current}${insertion}`;
-      console.log('Spec updated, new length:', newSpec.length);
-      return newSpec;
-    });
-    
-    console.log('Switching to agents tab');
+    setSpec((current) => `${current}${insertion}`);
     setActiveTab('agents');
-  }
-
-  function removeReference(index: number) {
-    setReferences((current) => current.filter((_, refIndex) => refIndex !== index));
   }
 
   async function dispatchTask() {
@@ -456,7 +426,6 @@ export default function BobdockWorkspace() {
           role: selectedRole,
           title,
           spec,
-          references,
         }),
       });
       const result = await response.json();
@@ -527,7 +496,7 @@ export default function BobdockWorkspace() {
       {step === 'credentials' && (
         <IntakeScreen
           eyebrow="GitHub setup"
-          title="Connect the repository system of record."
+          title="Connect repository to initialize your engineering workstation."
           description="Bobdock uses GitHub access to generate repository context, attach documentation fragments, and dispatch cloud Bob agents with enough detail to work without a local IDE."
         >
           <form className="workspace-panel intake-card" onSubmit={saveCredentials}>
@@ -578,14 +547,11 @@ export default function BobdockWorkspace() {
               setTitle={setTitle}
               spec={spec}
               setSpec={setSpec}
-              references={references}
-              removeReference={removeReference}
               openContext={() => setActiveTab('context')}
               dispatchTask={dispatchTask}
               isDispatching={isDispatching}
               taskStatus={taskStatus}
               taskOutput={taskOutput}
-              docsReady={docsReady}
             />
           ) : (
             <ContextPanel
@@ -712,14 +678,11 @@ function AgentsPanel({
   setTitle,
   spec,
   setSpec,
-  references,
-  removeReference,
   openContext,
   dispatchTask,
   isDispatching,
   taskStatus,
   taskOutput,
-  docsReady,
 }: {
   agents: typeof agents;
   selectedAgent: (typeof agents)[number];
@@ -729,14 +692,11 @@ function AgentsPanel({
   setTitle: (value: string) => void;
   spec: string;
   setSpec: (value: string) => void;
-  references: ContextReference[];
-  removeReference: (index: number) => void;
   openContext: () => void;
   dispatchTask: () => void;
   isDispatching: boolean;
   taskStatus: string;
   taskOutput: string;
-  docsReady: boolean;
 }) {
   return (
     <section className="agents-layout">
@@ -770,16 +730,10 @@ function AgentsPanel({
           </div>
         </div>
 
-        <div className="composer-grid">
-          <label>
-            <span>Task title</span>
-            <input value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Implement repository-aware onboarding flow" />
-          </label>
-          <div className={`context-health ${docsReady ? 'ready' : ''}`}>
-            <strong>{docsReady ? 'Context ready' : 'Context missing'}</strong>
-            <span>{docsReady ? `${references.length} references attached` : 'Generate or load docs before dispatch'}</span>
-          </div>
-        </div>
+        <label>
+          <span>Task title</span>
+          <input value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Implement repository-aware onboarding flow" />
+        </label>
 
         <label className="spec-label">
           <span>Detailed plan</span>
@@ -789,17 +743,6 @@ function AgentsPanel({
             placeholder="State the goal, constraints, expected files or modules, acceptance criteria, and verification. Use the Context tab to insert generated documentation references into this spec."
           />
         </label>
-
-        {references.length > 0 && (
-          <div className="reference-row">
-            {references.map((ref, index) => (
-              <button key={`${ref.path}-${ref.heading ?? 'page'}`} className="reference-chip" type="button" onClick={() => removeReference(index)} title="Remove reference">
-                {ref.heading ?? ref.title}
-                <span aria-hidden="true">x</span>
-              </button>
-            ))}
-          </div>
-        )}
 
         <div className="dispatch-row">
           <button className="primary-action" type="button" onClick={dispatchTask} disabled={isDispatching || !title.trim() || !spec.trim()}>

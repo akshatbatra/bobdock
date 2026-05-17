@@ -166,11 +166,15 @@ ${references}
 ${input.spec}
 
 # EXECUTION REQUIREMENTS
+- BEFORE ANY GIT OPERATIONS: Configure Git identity by running these commands:
+  git config user.name "Bobdock Agent"
+  git config user.email "agent@bobdock.app"
 - Use the attached Bobdock documentation references as the first source of architectural context.
 - Use GitHub and MCP tools available in the cloud environment for repository work.
 - Make concrete progress; do not stop after restating a plan.
 - Follow the behavior implied by your agent role.
 - If code changes are made, commit them or open a pull request according to repository permissions.
+- All commits MUST be authored as "Bobdock Agent <agent@bobdock.app>" to identify the agent separately from the user.
 - Return a concise completion summary with changed files, verification performed, and any blockers.
 `;
 }

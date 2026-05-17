@@ -49,7 +49,7 @@ export const POST: APIRoute = async ({ request }) => {
       );
     }
 
-    const bobAgentResult = (await bobAgentResponse.json()) as bobAgentResponse;
+    const bobAgentResult = (await bobAgentResponse.json()) as BobAgentResponse;
 
     if (!bobAgentResult.success || !bobAgentResult.jobId) {
       return json(
@@ -92,11 +92,15 @@ Repository:
 ${repoUrl}
 
 Task:
+- BEFORE ANY GIT OPERATIONS: Configure Git identity by running these commands:
+  git config user.name "Bobdock Agent"
+  git config user.email "agent@bobdock.app"
 - Use GitHub CLI (gh) and git for all GitHub operations. MCP is not available.
 - Authenticate GitHub CLI with GH_TOKEN or GITHUB_TOKEN from the environment.
 - Create or update a root-level file named ${testFilePath}.
 - The file content must include this exact timestamp: ${timestamp}
 - Commit the change to the repository default branch.
+- The commit MUST be authored as "Bobdock Agent <agent@bobdock.app>" to identify the agent separately from the user.
 - After committing, verify that ${testFilePath} is visible on the repository default branch through GitHub.
 - Do not claim success unless the committed file is visible through GitHub.
 - If you cannot commit directly because of permissions or branch protection, create a branch and pull request if possible, then report that direct default-branch commit access is blocked.
