@@ -35,6 +35,8 @@ The platform consists of two main components:
 - Docker containerization for isolated agent execution
 - MCP (Model Context Protocol) integration
 
+![Bobdock Architecture](public/bobdock-architecture.svg)
+
 ## 📋 Prerequisites
 
 - Node.js >= 22.12.0
@@ -148,12 +150,17 @@ bobdock/
 
 ### Environment Variables
 
-Create a `.env` file in the root directory:
+Create a `.env` file in the root directory for the frontend:
 
 ```env
-# Add your configuration here
-GITHUB_TOKEN=your_github_token
-API_BASE_URL=http://localhost:3000
+BOB_AGENT_BASE_URL=http://localhost:3000
+```
+
+Create a `.env` file in the `bobcloud/` directory for the backend:
+
+```env
+BOBSHELL_API_KEY=your_api_key
+PORT=3000
 ```
 
 ### BobCloud Configuration
